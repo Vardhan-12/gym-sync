@@ -5,6 +5,7 @@ import {
   getProfile,
   refreshToken,
 } from "./authService";
+import { setAuthToken } from "../../services/axiosInstance";
 
 const AuthContext = createContext();
 
@@ -13,36 +14,57 @@ export function AuthProvider({ children }) {
   const [accessToken, setAccessToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // LOGIN
-  const login = async (data) => {
-    const res = await loginUser(data);
-    setAccessToken(res.accessToken);
-    await fetchProfile();
-  };
-
-  // LOGOUT
-  const logout = async () => {
-    await logoutUser();
-    setUser(null);
-    setAccessToken(null);
-  };
-
+  // ========================
   // FETCH PROFILE
+  // ========================
   const fetchProfile = async () => {
     const profile = await getProfile();
     setUser(profile);
   };
 
-  // TRY REFRESH ON APP LOAD
+  // ========================
+  // LOGIN
+  // ========================
+  const login = async (data) => {
+    const res = await loginUser(data);
+
+    setAccessToken(res.accessToken);
+    setAuthToken(res.accessToken);
+
+    await fetchProfile();
+  };
+
+  // ========================
+  // LOGOUT
+  // ========================
+  const logout = async () => {
+    try {
+      await logoutUser();
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
+
+    setUser(null);
+    setAccessToken(null);
+    setAuthToken(null);
+  };
+
+  // ========================
+  // INITIAL AUTH CHECK
+  // ========================
   useEffect(() => {
     const initializeAuth = async () => {
       try {
         const res = await refreshToken();
+
         setAccessToken(res.accessToken);
+        setAuthToken(res.accessToken);
+
         await fetchProfile();
       } catch (err) {
         setUser(null);
         setAccessToken(null);
+        setAuthToken(null);
       } finally {
         setLoading(false);
       }

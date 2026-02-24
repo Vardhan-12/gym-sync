@@ -4,39 +4,31 @@ const router = express.Router();
 const protect = require("../middleware/authMiddleware");
 const validate = require("../middleware/validateMiddleware");
 
+const { workoutValidator } = require("../validators/workoutValidator");
+
 const {
   createWorkout,
   getWorkouts,
-  updateWorkout,
   deleteWorkout,
-  getWorkoutStats,
+  updateWorkout,
 } = require("../controllers/workoutController");
 
-const {
-  createWorkoutValidator,
-  paginationValidator
-} = require("../validators/workoutValidator");
-
-// Specific route first
-router.get("/stats", protect, getWorkoutStats);
-
+// CREATE WORKOUT
 router.post(
   "/",
   protect,
-  createWorkoutValidator,
+  workoutValidator,
   validate,
   createWorkout
 );
 
-router.get(
-  "/",
-  protect,
-  paginationValidator,
-  validate,
-  getWorkouts
-);
+// GET WORKOUTS (paginated)
+router.get("/", protect, getWorkouts);
 
-router.put("/:id", protect, updateWorkout);
+// DELETE WORKOUT
 router.delete("/:id", protect, deleteWorkout);
+
+// UPDATE WORKOUT (optional if exists)
+router.put("/:id", protect, updateWorkout);
 
 module.exports = router;

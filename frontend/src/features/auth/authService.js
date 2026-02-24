@@ -1,28 +1,25 @@
 import axiosInstance from "../../services/axiosInstance";
 
-export const registerUser = async (data) => {
-  const response = await axiosInstance.post("/users/register", data);
-  return response.data;
-};
-
+// LOGIN
 export const loginUser = async (data) => {
-  console.log("LOGIN API CALLED", data);
-  const response = await axiosInstance.post("/users/login", data);
-  console.log("LOGIN RESPONSE", response);
+  const response = await axiosInstance.post("/auth/login", data);
   return response.data;
 };
 
+// LOGOUT
 export const logoutUser = async () => {
-  const response = await axiosInstance.post("/users/logout");
+  const response = await axiosInstance.post("/auth/logout");
   return response.data;
 };
 
+// GET PROFILE
 export const getProfile = async () => {
   const response = await axiosInstance.get("/users/profile");
   return response.data;
 };
 
+// REFRESH TOKEN
 export const refreshToken = async () => {
-  const response = await axiosInstance.post("/users/refresh");
+  const response = await axiosInstance.post("/auth/refresh-token");
   return response.data;
 };

@@ -29,6 +29,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 // ROUTES
+app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/workouts", require("./routes/workoutRoutes"));
 

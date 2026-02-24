@@ -1,58 +1,19 @@
-const { body, query } = require("express-validator");
+const { body } = require("express-validator");
 
-/*
-  CREATE WORKOUT VALIDATION
-*/
-const createWorkoutValidator = [
-  body("title")
-    .trim()
+exports.workoutValidator = [
+  body("exercise")
     .notEmpty()
-    .withMessage("Workout title is required"),
+    .withMessage("Exercise is required"),
 
-  body("duration")
-    .notEmpty()
-    .withMessage("Duration is required")
+  body("sets")
     .isInt({ min: 1 })
-    .withMessage("Duration must be a positive number"),
+    .withMessage("Sets must be a positive number"),
 
-  body("calories")
-    .optional()
-    .isInt({ min: 0 })
-    .withMessage("Calories must be a positive number"),
+  body("reps")
+    .isInt({ min: 1 })
+    .withMessage("Reps must be a positive number"),
 
-  body("date")
-    .optional()
-    .isISO8601()
-    .withMessage("Date must be a valid ISO date (YYYY-MM-DD)")
+  body("weight")
+    .isNumeric()
+    .withMessage("Weight must be a number"),
 ];
-
-
-/*
-  PAGINATION + FILTER VALIDATION
-*/
-const paginationValidator = [
-  query("page")
-    .optional()
-    .isInt({ min: 1 })
-    .withMessage("Page must be greater than or equal to 1"),
-
-  query("limit")
-    .optional()
-    .isInt({ min: 1 })
-    .withMessage("Limit must be greater than or equal to 1"),
-
-  query("start")
-    .optional()
-    .isISO8601()
-    .withMessage("Start date must be valid (YYYY-MM-DD)"),
-
-  query("end")
-    .optional()
-    .isISO8601()
-    .withMessage("End date must be valid (YYYY-MM-DD)")
-];
-
-module.exports = {
-  createWorkoutValidator,
-  paginationValidator
-};
