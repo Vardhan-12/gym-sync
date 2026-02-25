@@ -1,32 +1,44 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../auth/authContext";
-import { getWorkouts } from "../../workout/workoutService";
+import { getSessions } from "../../session/sessionService";
 
 const Dashboard = () => {
   const { user } = useAuth();
 
-  const [totalWorkouts, setTotalWorkouts] = useState(0);
-  const [weeklyWorkouts, setWeeklyWorkouts] = useState(0);
+  const [totalSessions, setTotalSessions] = useState(0);
+  const [weeklySessions, setWeeklySessions] = useState(0);
+  const [todaySessions, setTodaySessions] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await getWorkouts();
+        const data = await getSessions(1);
+        const sessions = data?.sessions || [];
 
-        const workouts = data.workouts || [];
-
-        setTotalWorkouts(data.total || 0);
+        setTotalSessions(sessions.length);
 
         const now = new Date();
+
         const startOfWeek = new Date();
         startOfWeek.setDate(now.getDate() - now.getDay());
+        startOfWeek.setHours(0, 0, 0, 0);
 
-        const weekly = workouts.filter((workout) => {
-          const workoutDate = new Date(workout.createdAt);
-          return workoutDate >= startOfWeek;
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+
+        const weekly = sessions.filter((s) => {
+          const sessionDate = new Date(s.startTime);
+          return sessionDate >= startOfWeek;
         });
 
-        setWeeklyWorkouts(weekly.length);
+        const today = sessions.filter((s) => {
+          const sessionDate = new Date(s.startTime);
+          return sessionDate >= startOfToday;
+        });
+
+        setWeeklySessions(weekly.length);
+        setTodaySessions(today.length);
+
       } catch (error) {
         console.error("Dashboard fetch error:", error);
       }
@@ -41,23 +53,18 @@ const Dashboard = () => {
 
       <div style={{ display: "flex", gap: "20px", marginTop: "20px" }}>
         <div style={cardStyle}>
-          <h3>Total Workouts</h3>
-          <p>{totalWorkouts}</p>
+          <h3>Total Sessions</h3>
+          <p>{totalSessions}</p>
         </div>
 
         <div style={cardStyle}>
           <h3>This Week</h3>
-          <p>{weeklyWorkouts}</p>
+          <p>{weeklySessions}</p>
         </div>
 
         <div style={cardStyle}>
-          <h3>Current Streak</h3>
-          <p>Coming Soon</p>
-        </div>
-
-        <div style={cardStyle}>
-          <h3>Weekly Goal</h3>
-          <p>Coming Soon</p>
+          <h3>Today</h3>
+          <p>{todaySessions}</p>
         </div>
       </div>
     </div>

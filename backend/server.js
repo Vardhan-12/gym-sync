@@ -31,7 +31,7 @@ app.use(cookieParser());
 // ROUTES
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/users", require("./routes/userRoutes"));
-app.use("/api/workouts", require("./routes/workoutRoutes"));
+app.use("/api/sessions", require("./routes/sessionRoutes"));
 
 // ERROR HANDLER
 const errorHandler = require("./middleware/errorMiddleware");
