@@ -1,82 +1,72 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../auth/authContext";
-import { getSessions } from "../../session/sessionService";
+import { getSessionSummary } from "../../session/sessionService";
+
 
 const Dashboard = () => {
   const { user } = useAuth();
 
-  const [totalSessions, setTotalSessions] = useState(0);
-  const [weeklySessions, setWeeklySessions] = useState(0);
-  const [todaySessions, setTodaySessions] = useState(0);
+  const [summary, setSummary] = useState({
+    totalSessions: 0,
+    weeklySessions: 0,
+    todaySessions: 0,
+  });
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchSummary = async () => {
       try {
-        const data = await getSessions(1);
-        const sessions = data?.sessions || [];
-
-        setTotalSessions(sessions.length);
-
-        const now = new Date();
-
-        const startOfWeek = new Date();
-        startOfWeek.setDate(now.getDate() - now.getDay());
-        startOfWeek.setHours(0, 0, 0, 0);
-
-        const startOfToday = new Date();
-        startOfToday.setHours(0, 0, 0, 0);
-
-        const weekly = sessions.filter((s) => {
-          const sessionDate = new Date(s.startTime);
-          return sessionDate >= startOfWeek;
-        });
-
-        const today = sessions.filter((s) => {
-          const sessionDate = new Date(s.startTime);
-          return sessionDate >= startOfToday;
-        });
-
-        setWeeklySessions(weekly.length);
-        setTodaySessions(today.length);
-
+        const data = await getSessionSummary();
+        setSummary(data);
       } catch (error) {
-        console.error("Dashboard fetch error:", error);
+        console.error("Summary fetch error:", error);
       }
     };
 
-    fetchData();
+    fetchSummary();
   }, []);
 
   return (
-    <div>
-      <h1>Welcome, {user?.name}</h1>
+  <div className="container fade-in">
+    <h1>Welcome, {user?.name}</h1>
 
-      <div style={{ display: "flex", gap: "20px", marginTop: "20px" }}>
-        <div style={cardStyle}>
-          <h3>Total Sessions</h3>
-          <p>{totalSessions}</p>
-        </div>
-
-        <div style={cardStyle}>
-          <h3>This Week</h3>
-          <p>{weeklySessions}</p>
-        </div>
-
-        <div style={cardStyle}>
-          <h3>Today</h3>
-          <p>{todaySessions}</p>
-        </div>
-      </div>
+    <div className="grid-3" style={{ marginTop: "20px" }}>
+      <StatCard title="Total Sessions" value={summary.totalSessions} />
+      <StatCard title="This Week" value={summary.weeklySessions} />
+      <StatCard title="Today" value={summary.todaySessions} />
     </div>
-  );
+  </div>
+);
 };
 
-const cardStyle = {
-  background: "#f4f4f4",
-  padding: "20px",
-  borderRadius: "8px",
-  minWidth: "150px",
-  textAlign: "center",
+const StatCard = ({ title, value }) => {
+  const [displayValue, setDisplayValue] = useState(0);
+
+  useEffect(() => {
+    let start = 0;
+    const duration = 500;
+    const increment = value / (duration / 16);
+
+    const counter = setInterval(() => {
+      start += increment;
+      if (start >= value) {
+        setDisplayValue(value);
+        clearInterval(counter);
+      } else {
+        setDisplayValue(Math.floor(start));
+      }
+    }, 16);
+
+    return () => clearInterval(counter);
+  }, [value]);
+
+  return (
+    <div className="card" style={{ textAlign: "center" }}>
+      <h3>{title}</h3>
+      <h2 style={{ marginTop: "10px", color: "#2563eb" }}>
+        {displayValue}
+      </h2>
+    </div>
+  );
 };
 
 export default Dashboard;

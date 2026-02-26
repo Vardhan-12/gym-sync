@@ -144,25 +144,118 @@ exports.getOverlappingUsers = asyncHandler(async (req, res) => {
   }
 
   const baseStart = new Date(baseSession.startTime);
-  const baseEnd = getEndTime(baseSession.startTime, baseSession.duration);
+  const baseEnd = new Date(
+    new Date(baseSession.startTime).getTime() +
+      baseSession.duration * 60000
+  );
 
   const sessions = await Session.find({
     _id: { $ne: sessionId },
+    createdBy: { $ne: baseSession.createdBy }, // exclude same user
   }).populate("createdBy", "name email");
 
-  const overlappingUsers = [];
+  const uniqueUsers = new Map();
 
   sessions.forEach((s) => {
     const start = new Date(s.startTime);
-    const end = getEndTime(s.startTime, s.duration);
+    const end = new Date(
+      new Date(s.startTime).getTime() + s.duration * 60000
+    );
 
     const overlap =
       Math.min(baseEnd, end) - Math.max(baseStart, start);
 
     if (overlap >= 30 * 60000) {
-      overlappingUsers.push(s.createdBy);
+      uniqueUsers.set(s.createdBy._id.toString(), s.createdBy);
     }
   });
 
-  res.json(overlappingUsers);
+  res.json(Array.from(uniqueUsers.values()));
+});
+
+exports.getSessionSummary = asyncHandler(async (req, res) => {
+  const now = new Date();
+
+  const startOfWeek = new Date();
+  startOfWeek.setDate(now.getDate() - now.getDay());
+  startOfWeek.setHours(0, 0, 0, 0);
+
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
+  const totalSessions = await Session.countDocuments();
+
+  const weeklySessions = await Session.countDocuments({
+    startTime: { $gte: startOfWeek },
+  });
+
+  const todaySessions = await Session.countDocuments({
+    startTime: { $gte: startOfToday },
+  });
+
+  res.json({
+    totalSessions,
+    weeklySessions,
+    todaySessions,
+  });
+});
+
+exports.getWeeklySummary = asyncHandler(async (req, res) => {
+  const today = new Date();
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(today.getDate() - 6);
+
+  const result = await Session.aggregate([
+    {
+      $match: {
+        startTime: { $gte: sevenDaysAgo },
+      },
+    },
+    {
+      $group: {
+        _id: {
+          $dateToString: {
+            format: "%Y-%m-%d",
+            date: "$startTime",
+          },
+        },
+        totalSessions: { $sum: 1 },
+      },
+    },
+    { $sort: { _id: 1 } },
+  ]);
+
+  res.json(
+    result.map((r) => ({
+      date: r._id,
+      totalSessions: r.totalSessions,
+    }))
+  );
+});
+
+exports.getAdminAnalytics = asyncHandler(async (req, res) => {
+  const totalSessions = await Session.countDocuments();
+  const totalUsers = await User.countDocuments();
+
+  const busiestDay = await Session.aggregate([
+    {
+      $group: {
+        _id: {
+          $dateToString: {
+            format: "%Y-%m-%d",
+            date: "$startTime",
+          },
+        },
+        count: { $sum: 1 },
+      },
+    },
+    { $sort: { count: -1 } },
+    { $limit: 1 },
+  ]);
+
+  res.json({
+    totalSessions,
+    totalUsers,
+    busiestDay: busiestDay[0] || null,
+  });
 });

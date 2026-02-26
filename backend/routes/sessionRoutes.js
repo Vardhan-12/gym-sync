@@ -34,4 +34,7 @@ router.get(
   sessionController.getOverlappingUsers
 );
 
+router.get("/summary", protect, sessionController.getSessionSummary);
+router.get("/weekly-summary", protect, sessionController.getWeeklySummary);
+
 module.exports = router;

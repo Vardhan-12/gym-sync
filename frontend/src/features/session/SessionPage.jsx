@@ -18,23 +18,35 @@ const SessionPage = () => {
   }, [page]);
 
 return (
-  <div>
+  <div className="container  fade-in">
     <h2>Gym Sessions</h2>
 
-    <SessionForm onCreated={fetchSessions} />
-
-    <SessionList sessions={sessions} onDeleted={fetchSessions} />
+    <div className="card" style={{ marginTop: "20px" }}>
+      <SessionForm onCreated={fetchSessions} />
+    </div>
 
     <div style={{ marginTop: "20px" }}>
-      <button onClick={() => setPage((p) => p - 1)} disabled={page === 1}>
+      <SessionList sessions={sessions} onDeleted={fetchSessions} />
+    </div>
+
+    <div style={{ marginTop: "20px" }}>
+      <button
+        className="button button-secondary"
+        onClick={() => setPage((p) => p - 1)}
+        disabled={page === 1}
+      >
         Prev
       </button>
-      <button onClick={() => setPage((p) => p + 1)}>
+
+      <button
+        className="button button-secondary"
+        style={{ marginLeft: "10px" }}
+        onClick={() => setPage((p) => p + 1)}
+      >
         Next
       </button>
     </div>
 
-    {/* 🔥 Density Visualization */}
     <DensityView />
   </div>
 );

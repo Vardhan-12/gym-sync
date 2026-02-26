@@ -21,3 +21,8 @@ export const getOverlappingUsers = async (sessionId) => {
   const response = await axios.get(`/sessions/overlap/${sessionId}`);
   return response.data;
 };
+
+export const getSessionSummary = async () => {
+  const response = await axios.get("/sessions/summary");
+  return response.data;
+};
