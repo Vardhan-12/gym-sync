@@ -21,6 +21,12 @@ const userSchema = new mongoose.Schema(
     gymName: String,
     preferredWorkoutTime: String,
 
+    role: {
+  type: String,
+  enum: ["user", "admin"],
+  default: "user",
+},
+
     // 🔐 Refresh token stored here
     refreshToken: {
       type: String,

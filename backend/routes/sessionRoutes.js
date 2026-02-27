@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const authorize = require("../middleware/authorize");
 
 const sessionController = require("../controllers/sessionController");
 const { protect } = require("../middleware/authMiddleware");
@@ -35,6 +36,10 @@ router.get(
 );
 
 router.get("/summary", protect, sessionController.getSessionSummary);
-router.get("/weekly-summary", protect, sessionController.getWeeklySummary);
-
+router.get(
+  "/weekly-summary",
+  protect,
+  authorize("admin"),
+  controller.getWeeklySummary
+);
 module.exports = router;

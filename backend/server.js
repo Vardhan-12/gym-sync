@@ -34,7 +34,7 @@ app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/sessions", require("./routes/sessionRoutes"));
 
 // ERROR HANDLER
-const errorHandler = require("./middleware/errorMiddleware");
+const errorHandler = require("./middleware/errorHandler");
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
