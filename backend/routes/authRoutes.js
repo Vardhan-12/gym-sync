@@ -17,9 +17,9 @@ const {
 } = require("../validators/userValidator");
 
 // AUTH ROUTES
-router.post("/register", registerValidator, validate, registerUser);
+router.post("/register", registerValidator, registerUser);
 
-router.post("/login", loginLimiter, loginValidator, validate, loginUser);
+router.post("/login", loginLimiter, loginValidator, loginUser);
 
 router.post("/refresh-token", refreshToken);
 

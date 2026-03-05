@@ -40,6 +40,10 @@ router.get(
   "/weekly-summary",
   protect,
   authorize("admin"),
-  controller.getWeeklySummary
+  sessionController.getWeeklySummary
 );
+
+router.get("/peak-hours", protect, sessionController.getPeakHours);
+router.get("/best-time", protect, sessionController.getBestTimePrediction);
+
 module.exports = router;

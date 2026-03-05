@@ -1,8 +1,12 @@
 const Session = require("../models/Session");
 const User = require("../models/User");
-const asyncHandler = require("express-async-handler");
+const asyncHandler = require("../utils/asyncHandler");
 const densityService = require("../services/densityService");
 const sessionService = require("../services/sessionService");
+const logger = require("../utils/logger");
+const response = require("../utils/response");
+const redisClient = require("../config/redis");
+const predictionService = require("../services/predictionService");
 
 // Helper to compute end time
 const getEndTime = (startTime, duration) => {
@@ -10,14 +14,21 @@ const getEndTime = (startTime, duration) => {
 };
 
 // Create Session
-exports.createSession = asyncHandler(async (req, res) => {
-  const session = await sessionService.createSession(
-    req.body,
-    req.user._id
-  );
+exports.createSession = async (req, res, next) => {
+  try {
+   const session = await sessionService.createSession(
+  req.body,
+  req.user._id
+);
 
-  res.status(201).json(session);
-});
+    logger(`User ${req.user._id} created a session`);
+
+    response.success(res, session, "Session created", 201);
+
+  } catch (error) {
+    next(error);
+  }
+};
 
 // Get Sessions (paginated)
 exports.getSessions = asyncHandler(async (req, res) => {
@@ -28,7 +39,7 @@ exports.getSessions = asyncHandler(async (req, res) => {
     page
   );
 
-  res.json(result);
+  response.success(res, result);
 });
 
 // Delete Session
@@ -38,20 +49,24 @@ exports.deleteSession = asyncHandler(async (req, res) => {
     req.user._id
   );
 
-  res.json(result);
+  response.success(res, result);
 });
 
 // Get Density by Date (30-min windows)
 exports.getDensityByDate = asyncHandler(async (req, res) => {
+
   const { date } = req.query;
 
   if (!date) {
-    return res.status(400).json({ message: "Date is required" });
+    return res.status(400).json({
+      message: "Date is required"
+    });
   }
 
   const density = await densityService.calculateDensity(date);
 
   res.json(density);
+
 });
 
 // Get Overlapping Users (>=30 mins overlap)
@@ -148,4 +163,23 @@ exports.getAdminAnalytics = asyncHandler(async (req, res) => {
     totalUsers,
     busiestDay: busiestDay[0] || null,
   });
+});
+
+exports.getPeakHours = asyncHandler(async (req, res) => {
+
+  const result = await densityService.getPeakHours();
+
+  res.json(result);
+
+});
+
+exports.getBestTimePrediction = asyncHandler(async (req, res) => {
+
+  const result = await predictionService.getBestGymTime();
+
+  res.json({
+    bestHour: result._id,
+    expectedCrowd: "LOW"
+  });
+
 });

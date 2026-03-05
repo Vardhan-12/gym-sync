@@ -1,4 +1,5 @@
 const Session = require("../models/Session");
+const AppError = require("../utils/AppError");
 
 // Compute endTime
 const getEndTime = (startTime, duration) => {
@@ -20,44 +21,47 @@ const hasValidOverlap = (A, B) => {
 
 // Density calculation
 exports.calculateDensity = async (date) => {
+
   const startOfDay = new Date(date);
-  startOfDay.setHours(0, 0, 0, 0);
+  startOfDay.setHours(0,0,0,0);
 
   const endOfDay = new Date(startOfDay);
-  endOfDay.setHours(23, 59, 59, 999);
+  endOfDay.setHours(23,59,59,999);
 
   const sessions = await Session.find({
-    startTime: { $gte: startOfDay, $lte: endOfDay },
+    startTime: { $gte: startOfDay, $lte: endOfDay }
   });
 
   const windows = [];
-  const windowSize = 30; // minutes
+  const windowSize = 30;
 
-  for (let hour = 0; hour < 24; hour++) {
-    for (let min = 0; min < 60; min += windowSize) {
-      const windowStart = new Date(startOfDay);
-      windowStart.setHours(hour, min, 0, 0);
+  for (let i = 0; i < 48; i++) {
 
-      const windowEnd = new Date(windowStart.getTime() + windowSize * 60000);
+    const windowStart = new Date(startOfDay.getTime() + i * windowSize * 60000);
+    const windowEnd = new Date(windowStart.getTime() + windowSize * 60000);
 
-      let count = 0;
+    let count = 0;
 
-      sessions.forEach((session) => {
-        const sessionEnd = getEndTime(session.startTime, session.duration);
+    sessions.forEach((session) => {
 
-        if (
-          session.startTime < windowEnd &&
-          sessionEnd > windowStart
-        ) {
-          count++;
-        }
-      });
+      const sessionEnd = new Date(
+        new Date(session.startTime).getTime() + session.duration * 60000
+      );
 
-      windows.push({
-        windowStart,
-        count,
-      });
-    }
+      if (
+        session.startTime < windowEnd &&
+        sessionEnd > windowStart
+      ) {
+        count++;
+      }
+
+    });
+
+    windows.push({
+      windowStart,
+      count
+    });
+
   }
 
   return windows;
@@ -80,4 +84,29 @@ exports.findOverlappingUsers = async (sessionId) => {
   );
 
   return overlapping.map((s) => s.createdBy);
+};
+
+exports.getPeakHours = async () => {
+
+  const result = await Session.aggregate([
+    {
+      $project: {
+        hour: { $hour: "$startTime" }
+      }
+    },
+    {
+      $group: {
+        _id: "$hour",
+        totalSessions: { $sum: 1 }
+      }
+    },
+    {
+      $sort: { totalSessions: -1 }
+    },
+    {
+      $limit: 3
+    }
+  ]);
+
+  return result;
 };

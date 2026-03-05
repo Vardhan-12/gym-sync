@@ -1,10 +1,15 @@
-const { body, validationResult, query, param } = require("express-validator");
+const { body, query, param, validationResult } = require("express-validator");
 
 const validate = (req, res, next) => {
+
   const errors = validationResult(req);
+
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    return res.status(400).json({
+      errors: errors.array()
+    });
   }
+
   next();
 };
 
@@ -21,7 +26,7 @@ exports.createSessionValidator = [
     .isInt({ min: 1, max: 180 })
     .withMessage("Duration must be between 1 and 180 minutes"),
 
-  validate,
+  validate
 ];
 
 exports.densityValidator = [
@@ -31,7 +36,7 @@ exports.densityValidator = [
     .isISO8601()
     .withMessage("Invalid date format"),
 
-  validate,
+  validate
 ];
 
 exports.overlapValidator = [
@@ -39,5 +44,5 @@ exports.overlapValidator = [
     .isMongoId()
     .withMessage("Invalid session ID"),
 
-  validate,
+  validate
 ];

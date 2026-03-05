@@ -25,4 +25,5 @@ const sessionSchema = new mongoose.Schema(
 // Compound index for better density queries
 sessionSchema.index({ startTime: 1, createdBy: 1 });
 
+
 module.exports = mongoose.model("Session", sessionSchema);
