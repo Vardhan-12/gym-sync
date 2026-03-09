@@ -1,51 +1,21 @@
-import { useAuth } from "../features/auth/authContext";
-import Sidebar from "../components/Sidebar";
+import { Outlet } from "react-router-dom";
+import Header from "../layout/Header";
+import Sidebar from "../layout/Sidebar";
 
-const AppLayout = ({ children }) => {
-  const { user, logout } = useAuth();
-
+function AppLayout() {
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
-      <Sidebar />
+    <>
+      <Header />
 
-      <div style={{ flex: 1, background: "#f3f4f6" }}>
-        {/* Top Header */}
-        <div
-          style={{
-            height: "60px",
-            background: "white",
-            borderBottom: "1px solid #e5e7eb",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "0 30px",
-          }}
-        >
-          <div style={{ fontWeight: "600", fontSize: "18px" }}>
-            Gym Coordination System
-          </div>
+      <div style={{ display: "flex" }}>
+        <Sidebar />
 
-          <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
-            <span style={{ fontWeight: "500" }}>
-              {user?.name}
-            </span>
-
-            <button
-              onClick={logout}
-              className="button button-danger"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-
-        {/* Page Content */}
-        <div style={{ padding: "30px" }}>
-          {children}
+        <div style={{ padding: "25px", width: "100%" }}>
+          <Outlet />
         </div>
       </div>
-    </div>
+    </>
   );
-};
+}
 
 export default AppLayout;

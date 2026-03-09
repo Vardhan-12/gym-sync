@@ -1,4 +1,4 @@
-import axios from "../../services/axiosInstance";
+import axios from "../../../services/axiosInstance";
 
 export const createSession = async (data) => {
   const response = await axios.post("/sessions", data);

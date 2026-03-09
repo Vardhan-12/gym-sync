@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { deleteSession, getOverlappingUsers } from "./sessionService";
 
-const SessionList = ({ sessions, onDeleted }) => {
+const SessionList = ({ sessions = [], onDeleted }) => {
   const [overlaps, setOverlaps] = useState({});
   const [loadingId, setLoadingId] = useState(null);
 

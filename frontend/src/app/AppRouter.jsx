@@ -1,42 +1,26 @@
-import { Routes, Route, Navigate } from "react-router-dom";
-import Login from "../features/auth/pages/Login";
-import Dashboard from "../features/dashboard/pages/Dashboard";
-import SessionPage from "../features/session/SessionPage";
-import ProtectedRoute from "./ProtectedRoute";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AppLayout from "./AppLayout";
+
+import Dashboard from "../features/dashboard/pages/Dashboard";
+import Login from "../features/auth/pages/Login";
+import Register from "../features/auth/pages/Register";
 
 function AppRouter() {
   return (
-    <Routes>
+    <BrowserRouter>
+      <Routes>
 
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route element={<AppLayout />}>
 
-      <Route path="/login" element={<Login />} />
+          <Route path="/" element={<Dashboard />} />
 
-      <Route
-  path="/dashboard"
-  element={
-    <ProtectedRoute>
-      <AppLayout>
-        <Dashboard />
-      </AppLayout>
-    </ProtectedRoute>
-  }
-/>
+        </Route>
 
-      <Route
-  path="/sessions"
-  element={
-    <ProtectedRoute>
-      <AppLayout>
-        <SessionPage />
-      </AppLayout>
-    </ProtectedRoute>
-  }
-/>
-      
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
-    </Routes>
+      </Routes>
+    </BrowserRouter>
   );
 }
 
