@@ -1,101 +1,48 @@
-import { useState } from "react";
-import { deleteSession, getOverlappingUsers } from "./sessionService";
+import { useEffect } from "react";
+import { getSessions, deleteSession } from "../sessionService";
 
-const SessionList = ({ sessions = [], onDeleted }) => {
-  const [overlaps, setOverlaps] = useState({});
-  const [loadingId, setLoadingId] = useState(null);
+function SessionList({ sessions, setSessions }) {
 
-  const handleDelete = async (id) => {
+  useEffect(() => {
+    loadSessions();
+  }, []);
+
+  async function loadSessions() {
+    const response = await getSessions();
+    setSessions(response.data.sessions || []);
+  }
+
+  async function handleDelete(id) {
     await deleteSession(id);
-    onDeleted();
-  };
-
-  const handleOverlap = async (id) => {
-    setLoadingId(id);
-    const users = await getOverlappingUsers(id);
-
-    setOverlaps((prev) => ({
-      ...prev,
-      [id]: users,
-    }));
-
-    setLoadingId(null);
-  };
+    setSessions(prev => prev.filter(s => s._id !== id));
+  }
 
   return (
-    <div style={{ marginTop: "20px" }}>
-      <h3 style={{ marginBottom: "15px" }}>Sessions</h3>
+    <div>
 
-      {sessions.length === 0 && (
-        <div className="card">No sessions found.</div>
-      )}
+      <h3>Your Sessions</h3>
 
-      {sessions.map((s) => (
-        <div
-          key={s._id}
-          className="card"
-          style={{ marginBottom: "15px" }}
-        >
-          <p style={{ marginBottom: "10px" }}>
-            <strong>
-              {new Date(s.startTime).toLocaleString()}
-            </strong>
-            {" | "}
-            {s.duration} mins
-            {" | "}
-            {s.createdBy?.name}
-          </p>
+      {sessions.map((session) => {
 
-          <div>
-            <button
-              className="button button-danger"
-              onClick={() => handleDelete(s._id)}
-            >
+        const date = new Date(session.startTime);
+
+        return (
+          <div key={session._id}>
+
+            <p>Date: {date.toLocaleDateString()}</p>
+            <p>Time: {date.toLocaleTimeString()}</p>
+            <p>Duration: {session.duration} minutes</p>
+
+            <button onClick={() => handleDelete(session._id)}>
               Delete
             </button>
 
-            <button
-              className="button button-primary"
-              style={{ marginLeft: "10px" }}
-              onClick={() => handleOverlap(s._id)}
-            >
-              View Overlaps
-            </button>
           </div>
+        );
+      })}
 
-          {loadingId === s._id && (
-            <p style={{ marginTop: "10px" }}>Loading...</p>
-          )}
-
-          {overlaps[s._id] && (
-            <div style={{ marginTop: "15px" }}>
-              <strong>Overlapping Users:</strong>
-
-              {overlaps[s._id].length === 0 && (
-                <p style={{ marginTop: "5px", color: "#6b7280" }}>
-                  No overlaps ≥ 30 minutes
-                </p>
-              )}
-
-              {overlaps[s._id].map((user) => (
-                <div
-                  key={user._id}
-                  style={{
-                    marginTop: "6px",
-                    padding: "6px 10px",
-                    background: "#f3f4f6",
-                    borderRadius: "6px",
-                  }}
-                >
-                  {user.name} ({user.email})
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      ))}
     </div>
   );
-};
+}
 
 export default SessionList;

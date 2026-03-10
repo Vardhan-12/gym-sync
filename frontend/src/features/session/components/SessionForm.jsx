@@ -1,46 +1,62 @@
 import { useState } from "react";
-import { createSession } from "./sessionService";
+import { createSession } from "../sessionService";
 
-const SessionForm = ({ onCreated }) => {
-  const [startTime, setStartTime] = useState("");
+function SessionForm({ setSessions }) {
+
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
   const [duration, setDuration] = useState("");
 
-  const handleSubmit = async (e) => {
+  async function handleSubmit(e) {
     e.preventDefault();
 
-    await createSession({
-      startTime,
-      duration: Number(duration),
-    });
+    try {
 
-    setStartTime("");
-    setDuration("");
-    onCreated();
-  };
+      const startTime = new Date(`${date}T${time}`);
+
+      const response = await createSession({
+        startTime,
+        duration
+      });
+
+      alert("Session saved");
+
+      // add new session to UI immediately
+      setSessions(prev => [response.data, ...prev]);
+
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   return (
     <form onSubmit={handleSubmit}>
+
       <h3>Create Session</h3>
 
       <input
-        type="datetime-local"
-        value={startTime}
-        onChange={(e) => setStartTime(e.target.value)}
-        required
+        type="date"
+        value={date}
+        onChange={(e) => setDate(e.target.value)}
+      />
+
+      <input
+        type="time"
+        value={time}
+        onChange={(e) => setTime(e.target.value)}
       />
 
       <input
         type="number"
         placeholder="Duration (minutes)"
         value={duration}
-        max={180}
         onChange={(e) => setDuration(e.target.value)}
-        required
       />
 
-      <button type="submit">Create</button>
+      <button type="submit">Save Session</button>
+
     </form>
   );
-};
+}
 
 export default SessionForm;

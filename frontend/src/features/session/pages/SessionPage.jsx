@@ -1,60 +1,22 @@
-import { useEffect, useState } from "react";
-import { getSessions } from "../components/sessionService";
-import SessionForm from "../SessionForm";
+import { useState } from "react";
+import SessionForm from "../components/SessionForm";
 import SessionList from "../components/SessionList";
-import DensityView from "../DensityView";
 
-const SessionPage = () => {
+function SessionPage() {
+
   const [sessions, setSessions] = useState([]);
-  const [page, setPage] = useState(1);
-
-  const fetchSessions = async () => {
-    try {
-      const data = await getSessions(page);
-      setSessions(data.sessions || []);
-    } catch (error) {
-      console.error("Failed to fetch sessions", error);
-      setSessions([]);
-    }
-  };
-
-  useEffect(() => {
-    fetchSessions();
-  }, [page]);
 
   return (
-    <div className="container fade-in">
+    <div>
+
       <h2>Gym Sessions</h2>
 
-      <div className="card" style={{ marginTop: "20px" }}>
-        <SessionForm onCreated={fetchSessions} />
-      </div>
+      <SessionForm setSessions={setSessions} />
 
-      <div style={{ marginTop: "20px" }}>
-        <SessionList sessions={sessions} onDeleted={fetchSessions} />
-      </div>
+      <SessionList sessions={sessions} setSessions={setSessions} />
 
-      <div style={{ marginTop: "20px" }}>
-        <button
-          className="button button-secondary"
-          onClick={() => setPage((p) => p - 1)}
-          disabled={page === 1}
-        >
-          Prev
-        </button>
-
-        <button
-          className="button button-secondary"
-          style={{ marginLeft: "10px" }}
-          onClick={() => setPage((p) => p + 1)}
-        >
-          Next
-        </button>
-      </div>
-
-      <DensityView />
     </div>
   );
-};
+}
 
 export default SessionPage;

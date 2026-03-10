@@ -5,7 +5,6 @@ const densityService = require("../services/densityService");
 const sessionService = require("../services/sessionService");
 const logger = require("../utils/logger");
 const response = require("../utils/response");
-const redisClient = require("../config/redis");
 const predictionService = require("../services/predictionService");
 
 // Helper to compute end time

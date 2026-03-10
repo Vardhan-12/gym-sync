@@ -5,9 +5,6 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const morgan = require("morgan");
 const hpp = require("hpp");
-//const mongoSanitize = require("express-mongo-sanitize");
-const swaggerUi = require("swagger-ui-express");
-const swaggerSpec = require("./config/swagger");
 
 dotenv.config();
 
@@ -16,7 +13,7 @@ connectDB();
 
 const app = express();
 
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 
 // SECURITY
 app.use(

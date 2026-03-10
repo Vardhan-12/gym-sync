@@ -1,15 +1,10 @@
+import { useContext } from "react";
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../features/auth/authContext";
+import { AuthContext } from "../features/auth/authContext";
 
-const ProtectedRoute = ({ children }) => {
-  const auth = useAuth();
+function ProtectedRoute({ children }) {
 
-  // If context somehow not ready
-  if (!auth) {
-    return null;
-  }
-
-  const { user, loading } = auth;
+  const { user, loading } = useContext(AuthContext);
 
   if (loading) {
     return <div>Loading...</div>;
@@ -20,6 +15,6 @@ const ProtectedRoute = ({ children }) => {
   }
 
   return children;
-};
+}
 
 export default ProtectedRoute;

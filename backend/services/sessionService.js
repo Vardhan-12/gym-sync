@@ -6,11 +6,11 @@ exports.createSession = async (data, userId) => {
   const { startTime, duration } = data;
 
   if (!startTime || !duration) {
-    throw new Error("Start time and duration are required");
+    throw new AppError("Start time and duration are required");
   }
 
   if (duration > 180) {
-    throw new Error("Duration cannot exceed 180 minutes");
+    throw new AppError("Duration cannot exceed 180 minutes");
   }
 
   const session = await Session.create({

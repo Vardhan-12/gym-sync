@@ -1,23 +1,40 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import AppLayout from "./AppLayout";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useContext } from "react";
+import { AuthContext } from "../features/auth/authContext";
 
+import AppLayout from "./AppLayout";
 import Dashboard from "../features/dashboard/pages/Dashboard";
+import SessionPage from "../features/session/pages/SessionPage";
 import Login from "../features/auth/pages/Login";
 import Register from "../features/auth/pages/Register";
 
 function AppRouter() {
+
+  const { user } = useContext(AuthContext);
+
   return (
     <BrowserRouter>
       <Routes>
 
-        <Route element={<AppLayout />}>
+        {/* Public routes */}
+        {!user && (
+          <>
+            <Route path="/" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="*" element={<Navigate to="/" />} />
+          </>
+        )}
 
-          <Route path="/" element={<Dashboard />} />
-
-        </Route>
-
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        {/* Protected routes */}
+        {user && (
+          <>
+            <Route element={<AppLayout />}>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/sessions" element={<SessionPage />} />
+            </Route>
+            <Route path="*" element={<Navigate to="/" />} />
+          </>
+        )}
 
       </Routes>
     </BrowserRouter>
