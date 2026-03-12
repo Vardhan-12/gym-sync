@@ -91,7 +91,12 @@ exports.getPeakHours = async () => {
   const result = await Session.aggregate([
     {
       $project: {
-        hour: { $hour: "$startTime" }
+        hour: {
+          $hour: {
+            date: "$startTime",
+            timezone: "Asia/Kolkata"
+          }
+        }
       }
     },
     {

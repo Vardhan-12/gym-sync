@@ -5,7 +5,7 @@ const User = require("../models/User");
 // Generate Access Token (15m)
 const generateAccessToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: "15m",
+    expiresIn: "1d",
   });
 };
 
@@ -98,7 +98,7 @@ exports.refreshToken = async (req, res) => {
 
     const newAccessToken = generateAccessToken(user._id);
 
-    res.cookie("refreshToken", refreshToken, {
+    res.cookie("refreshToken", newRefreshToken, {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   sameSite: "strict",
