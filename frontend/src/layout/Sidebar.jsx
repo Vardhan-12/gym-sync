@@ -11,6 +11,8 @@ function Sidebar() {
 
       <p><Link to="/">Dashboard</Link></p>
       <p><Link to="/sessions">Sessions</Link></p>
+      <p><Link to="/workouts">Workouts</Link></p>
+      <p><Link to="/progress">Progress</Link></p>
 
       {!user ? (
         <p><Link to="/">Login</Link></p>

@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../auth/authContext";
 import { getRandomQuote } from "../../../utils/quotes";
+import { getLatestWorkout } from "../../workout/workoutService";
 
 import {
   getDensity,
@@ -24,6 +25,7 @@ function Dashboard() {
   const [weeklyData, setWeeklyData] = useState([]);
   const [currentCrowd, setCurrentCrowd] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [latestWorkout, setLatestWorkout] = useState(null);
 
   useEffect(() => {
 
@@ -36,7 +38,8 @@ function Dashboard() {
         const peakData = await getPeakHours();
         const bestData = await getBestTime();
         const weekly = await getWeeklySummary();
-
+        const latest = await getLatestWorkout();
+        setLatestWorkout(latest);
         setDensity(densityData);
         setPeakHours(peakData);
         setBestTime(bestData);
@@ -99,9 +102,27 @@ function Dashboard() {
       ) : (
         <>
 
+          {/* Previous Workout */}
+
+          <h3 style={{ marginTop: "30px" }}>Previous Workout</h3>
+
+{latestWorkout ? (
+  <div>
+    <p>Exercise: {latestWorkout.exercise}</p>
+    <p>Muscle Group: {latestWorkout.muscleGroup}</p>
+    <p>Sets: {latestWorkout.sets}</p>
+    <p>Reps: {latestWorkout.reps}</p>
+    <p>Weight: {latestWorkout.weight} kg</p>
+  </div>
+) : (
+  <p>No workouts logged yet.</p>
+)}
+
           {/* Current Gym Status */}
 
           <h3 style={{ marginTop: "30px" }}>Current Gym Status</h3>
+
+          
 
           {currentCrowd ? (
             <p style={{ fontWeight: "bold", color: currentCrowd.color }}>
