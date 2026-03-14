@@ -4,11 +4,11 @@ const router = express.Router();
 const workoutController = require("../controllers/workoutController");
 const { protect } = require("../middleware/authMiddleware");
 
-router.post("/", protect, workoutController.createWorkout);
+router.post("/", protect, workoutController.createWorkoutSession);
 
-router.get("/", protect, workoutController.getWorkouts);
+router.get("/", protect, workoutController.getWorkoutSessions);
 
-router.delete("/:id", protect, workoutController.deleteWorkout);
+router.delete("/:id", protect, workoutController.deleteWorkoutSession);
 
 router.get(
   "/progress/:exercise",
@@ -20,6 +20,24 @@ router.get(
   "/latest",
   protect,
   workoutController.getLatestWorkout
+);
+
+router.post(
+  "/:id/like",
+  protect,
+  workoutController.toggleLikeWorkout
+);
+
+router.post(
+  "/:id/comment",
+  protect,
+  workoutController.addComment
+);
+
+router.put(
+  "/:id",
+  protect,
+  workoutController.updateWorkoutSession
 );
 
 module.exports = router;

@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import WorkoutList from "../../workout/WorkoutList";
 import { getWorkouts } from "../../workout/workoutService";
 
@@ -7,12 +6,12 @@ function ProfilePage() {
   const [workouts, setWorkouts] = useState([]);
 
   useEffect(() => {
-    loadWorkouts();
+    load();
   }, []);
 
-  const loadWorkouts = async () => {
+  const load = async () => {
     const data = await getWorkouts();
-    setWorkouts(data || []);
+    setWorkouts(data);
   };
 
   return (
@@ -20,12 +19,7 @@ function ProfilePage() {
 
       <h1>My Profile</h1>
 
-      <p>Your completed workouts and activity</p>
-
-      <WorkoutList
-        workouts={workouts}
-        refreshWorkouts={loadWorkouts}
-      />
+      <WorkoutList workouts={workouts} />
 
     </div>
   );

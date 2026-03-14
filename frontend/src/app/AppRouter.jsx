@@ -8,6 +8,7 @@ import Login from "../features/auth/pages/Login";
 import Register from "../features/auth/pages/Register";
 import WorkoutPage from "../features/workout/pages/WorkoutPage";
 import ProgressPage from "../features/progress/pages/ProgressPage";
+import ProfilePage from "../features/profile/pages/ProfilePage";
 
 function AppRouter() {
 
@@ -34,6 +35,7 @@ function AppRouter() {
               <Route path="/sessions" element={<SessionPage />} />
               <Route path="/workouts" element={<WorkoutPage />} />
               <Route path="/progress" element={<ProgressPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
             </Route>
             <Route path="*" element={<Navigate to="/" />} />
           </>

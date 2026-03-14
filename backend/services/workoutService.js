@@ -1,50 +1,117 @@
-const Workout = require("../models/Workout");
+const WorkoutSession = require("../models/WorkoutSession");
 const AppError = require("../utils/AppError");
 
 // Create workout
-exports.createWorkout = async (data, userId) => {
+exports.createWorkoutSession = async (data, userId) => {
 
-  const { exercise, muscleGroup, sets, reps, weight } = data;
+  const { title, exercises } = data;
 
-  if (!exercise || !muscleGroup) {
-    throw new AppError("Exercise and muscle group required");
+  if (!title) {
+    throw new AppError("Workout title required");
   }
 
-  const workout = await Workout.create({
-    exercise,
-    muscleGroup,
-    sets,
-    reps,
-    weight,
+  const session = await WorkoutSession.create({
+    title,
+    exercises,
     createdBy: userId
   });
 
-  return workout;
+  return session;
+
 };
 
 // Get workouts
-exports.getWorkouts = async (userId) => {
+exports.getWorkoutSessions = async (userId) => {
 
-  return await Workout.find({ createdBy: userId })
-    .sort({ createdAt: -1 });
+  return await WorkoutSession.find({
+    createdBy: userId
+  }).sort({ createdAt: -1 });
 
 };
 
 // Delete workout
-exports.deleteWorkout = async (id, userId) => {
+exports.deleteWorkoutSession = async (id, userId) => {
 
-  const workout = await Workout.findById(id);
+  const session = await WorkoutSession.findById(id);
 
-  if (!workout) {
-    throw new AppError("Workout not found", 404);
+  if (!session) {
+    throw new AppError("Workout session not found", 404);
   }
 
-  if (workout.createdBy.toString() !== userId.toString()) {
+  if (session.createdBy.toString() !== userId.toString()) {
     throw new AppError("Not authorized", 403);
   }
 
-  await workout.deleteOne();
+  await session.deleteOne();
 
-  return { message: "Workout deleted" };
+  return { message: "Workout session deleted" };
+
+};
+
+
+//addLikes
+exports.toggleLikeWorkout = async (sessionId, userId) => {
+
+  const session = await WorkoutSession.findById(sessionId);
+
+  if (!session) {
+    throw new AppError("Workout session not found", 404);
+  }
+
+  const alreadyLiked = session.likes.includes(userId);
+
+  if (alreadyLiked) {
+    session.likes = session.likes.filter(
+      (id) => id.toString() !== userId.toString()
+    );
+  } else {
+    session.likes.push(userId);
+  }
+
+  await session.save();
+
+  return session.likes.length;
+
+};
+
+
+//addComment
+exports.addComment = async (sessionId, userId, text) => {
+
+  const session = await WorkoutSession.findById(sessionId);
+
+  if (!session) {
+    throw new AppError("Workout session not found", 404);
+  }
+
+  session.comments.push({
+    user: userId,
+    text
+  });
+
+  await session.save();
+
+  return session.comments;
+
+};
+
+exports.updateWorkoutSession = async (id, userId, data) => {
+
+  const session = await WorkoutSession.findById(id);
+
+  if (!session) {
+    throw new AppError("Workout session not found", 404);
+  }
+
+  if (session.createdBy.toString() !== userId.toString()) {
+    throw new AppError("Not authorized", 403);
+  }
+
+  session.title = data.title || session.title;
+  session.exercises = data.exercises || session.exercises;
+
+  await session.save();
+
+  return session;
 
 };

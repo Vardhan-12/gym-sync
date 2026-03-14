@@ -24,3 +24,13 @@ export const getLatestWorkout = async () => {
   const response = await axios.get("/workouts/latest");
   return response.data;
 };
+
+export const toggleLikeWorkout = async (id) => {
+  const response = await axios.post(`/workouts/${id}/like`);
+  return response.data;
+};
+
+export const updateWorkout = async (id, data) => {
+  const response = await axios.put(`/workouts/${id}`, data);
+  return response.data;
+};
