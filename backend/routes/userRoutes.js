@@ -4,13 +4,16 @@ const router = express.Router();
 const { protect } = require("../middleware/authMiddleware");
 
 const {
+  getUsersFromSessions,
   getProfile,
   updateProfile,
 } = require("../controllers/userController");
 
-// USER PROFILE ROUTES
-router.get("/profile", protect, getProfile);
+// 🔹 Get users from sessions
+router.get("/from-sessions", protect, getUsersFromSessions);
 
+// 🔹 Profile routes
+router.get("/profile", protect, getProfile);
 router.put("/profile", protect, updateProfile);
 
 module.exports = router;

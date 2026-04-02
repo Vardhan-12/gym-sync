@@ -154,6 +154,30 @@ const getProfile = async (req, res) => {
   res.status(200).json({ user: req.user });
 };
 
+const Session = require("../models/Session");
+
+
+const getUsersFromSessions = async (req, res) => {
+  try {
+    const sessions = await Session.find().select("createdBy");
+
+    const userIds = [
+      ...new Set(sessions.map((s) => s.createdBy.toString())),
+    ];
+
+    const users = await User.find({ _id: { $in: userIds } })
+      .select("name email createdAt");
+
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = {
+  getUsersFromSessions,
+};
+
 /*
   UPDATE PROFILE
 */
@@ -183,5 +207,6 @@ module.exports = {
   refreshToken,
   logoutUser,
   getProfile,
-  updateProfile
+  updateProfile,
+  getUsersFromSessions, // ✅ ADD THIS HERE
 };

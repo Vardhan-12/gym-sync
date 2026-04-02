@@ -108,10 +108,30 @@ exports.updateWorkoutSession = async (id, userId, data) => {
     throw new AppError("Not authorized", 403);
   }
 
+  // update title
   session.title = data.title || session.title;
-  session.exercises = data.exercises || session.exercises;
 
-  // ✅ Recalculate volume when exercises change
+  // update exercises + track history
+  if (data.exercises) {
+    session.exercises = data.exercises.map((exercise) => {
+      // ensure progress array exists
+      if (!exercise.progress) {
+        exercise.progress = [];
+      }
+
+      // ✅ add new history entry
+      exercise.progress.push({
+        date: new Date(),
+        weight: exercise.weight,
+        reps: exercise.reps,
+        sets: exercise.sets
+      });
+
+      return exercise;
+    });
+  }
+
+  // recalculate total volume
   session.totalVolume = calculateWorkoutVolume(session.exercises);
 
   await session.save();

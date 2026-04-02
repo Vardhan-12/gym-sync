@@ -1,4 +1,5 @@
 import ExerciseProgress from "../components/ExerciseProgress";
+import VolumeProgress from "../components/VolumeProgress";
 
 function ProgressPage() {
   return (
@@ -6,6 +7,7 @@ function ProgressPage() {
       <h1>Workout Progress</h1>
 
       <ExerciseProgress />
+      <VolumeProgress />
     </div>
   );
 }

@@ -5,18 +5,22 @@ const exerciseSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  sets: {
-    type: Number,
-    required: true
-  },
-  reps: {
-    type: Number,
-    required: true
-  },
-  weight: {
-    type: Number,
-    required: true
-  }
+  sets: Number,
+  reps: Number,
+  weight: Number,
+
+  // ✅ NEW FIELD (IMPORTANT)
+  progress: [
+    {
+      date: {
+        type: Date,
+        default: Date.now
+      },
+      weight: Number,
+      reps: Number,
+      sets: Number
+    }
+  ]
 });
 
 const commentSchema = new mongoose.Schema({

@@ -9,9 +9,9 @@ import Register from "../features/auth/pages/Register";
 import WorkoutPage from "../features/workout/pages/WorkoutPage";
 import ProgressPage from "../features/progress/pages/ProgressPage";
 import ProfilePage from "../features/profile/pages/ProfilePage";
+import ProfileList from "../features/profile/pages/ProfileList";
 
 function AppRouter() {
-
   const { user } = useContext(AuthContext);
 
   return (
@@ -36,6 +36,7 @@ function AppRouter() {
               <Route path="/workouts" element={<WorkoutPage />} />
               <Route path="/progress" element={<ProgressPage />} />
               <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/profiles" element={<ProfileList />} />
             </Route>
             <Route path="*" element={<Navigate to="/" />} />
           </>

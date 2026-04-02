@@ -55,12 +55,35 @@ exports.getExerciseProgress = asyncHandler(async (req, res) => {
       }
     },
     {
-      $sort: { createdAt: 1 }
+      $unwind: "$exercises.progress"
     },
+
+    // ✅ GROUP BY DATE (IMPORTANT)
+    {
+      $group: {
+        _id: {
+          $dateToString: {
+            format: "%Y-%m-%d",
+            date: "$exercises.progress.date"
+          }
+        },
+        maxWeight: {
+          $max: "$exercises.progress.weight"
+        }
+      }
+    },
+
+    // ✅ SORT BY DATE
+    {
+      $sort: { _id: 1 }
+    },
+
+    // ✅ FORMAT OUTPUT
     {
       $project: {
-        date: "$createdAt",
-        weight: "$exercises.weight"
+        date: "$_id",
+        weight: "$maxWeight",
+        _id: 0
       }
     }
   ]);
@@ -148,4 +171,98 @@ exports.getUserExercises = asyncHandler(async (req, res) => {
   ]);
 
   res.json(result);
+});
+
+exports.getVolumeProgress = asyncHandler(async (req, res) => {
+  const result = await WorkoutSession.aggregate([
+    {
+      $match: {
+        createdBy: req.user._id
+      }
+    },
+    {
+      $group: {
+        _id: {
+          $dateToString: {
+            format: "%Y-%m-%d",
+            date: "$updatedAt"
+          }
+        },
+        totalVolume: { $sum: "$totalVolume" }
+      }
+    },
+    {
+      $sort: { _id: 1 }
+    },
+    {
+      $project: {
+        date: "$_id",
+        totalVolume: 1,
+        _id: 0
+      }
+    }
+  ]);
+
+  res.json(result);
+});
+
+exports.getExerciseInsights = asyncHandler(async (req, res) => {
+  const { exercise } = req.params;
+
+  const result = await WorkoutSession.aggregate([
+    {
+      $match: {
+        createdBy: req.user._id
+      }
+    },
+    {
+      $unwind: "$exercises"
+    },
+    {
+      $match: {
+        "exercises.name": exercise
+      }
+    },
+    {
+      $unwind: "$exercises.progress"
+    },
+
+    // group by date
+    {
+      $group: {
+        _id: {
+          $dateToString: {
+            format: "%Y-%m-%d",
+            date: "$exercises.progress.date"
+          }
+        },
+        maxWeight: {
+          $max: "$exercises.progress.weight"
+        }
+      }
+    },
+
+    {
+      $sort: { _id: 1 }
+    }
+  ]);
+
+  if (result.length === 0) {
+    return res.json(null);
+  }
+
+  // 🔥 calculate insights
+  let best = result[0];
+
+  result.forEach((day) => {
+    if (day.maxWeight > best.maxWeight) {
+      best = day;
+    }
+  });
+
+  res.json({
+    bestWeight: best.maxWeight,
+    bestDay: best._id,
+    totalDays: result.length
+  });
 });

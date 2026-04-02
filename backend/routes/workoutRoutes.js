@@ -18,7 +18,13 @@ router.get("/", protect, workoutController.getWorkoutSessions);
 
 router.delete("/:id", protect, workoutController.deleteWorkoutSession);
 
+router.get("/progress/volume", protect, workoutController.getVolumeProgress);
 
+router.get(
+  "/progress/insights/:exercise",
+  protect,
+  workoutController.getExerciseInsights
+);
 
 router.post(
   "/:id/like",

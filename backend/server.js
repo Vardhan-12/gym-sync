@@ -38,7 +38,7 @@ app.use(hpp());
 // RATE LIMIT
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 1000,
   message: "Too many requests from this IP"
 });
 
@@ -67,5 +67,9 @@ if (process.env.NODE_ENV !== "test") {
     console.log(`Server running on port ${PORT}`);
   });
 }
+
+const matchRoutes = require("./routes/matchRoutes");
+
+app.use("/api/match", matchRoutes);
 
 module.exports = app;

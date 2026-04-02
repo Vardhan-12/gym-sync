@@ -22,7 +22,6 @@ async function handleLogin(e) {
 
     console.log("LOGIN RESPONSE:", data);
 
-    // check token
     const token = data.accessToken;
 
     if (!token) {
@@ -30,13 +29,13 @@ async function handleLogin(e) {
       return;
     }
 
-    // store token
-    localStorage.setItem("token", token);
+    // ✅ FIXED KEY
+    localStorage.setItem("accessToken", token);
 
-    // store user
-    setUser(data.user);
+    // ✅ TEMP USER SET
+    setUser({ email });
 
-    console.log("TOKEN SAVED:", localStorage.getItem("token"));
+    console.log("TOKEN SAVED:", localStorage.getItem("accessToken"));
 
     navigate("/");
 

@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
-import { getExerciseProgress, getUserExercises } from "../../workout/workoutService";
+import { 
+  getExerciseProgress, 
+  getUserExercises,
+  getExerciseInsights   // ✅ ADD THIS
+} from "../../workout/workoutService";
 import {
   LineChart,
   Line,
@@ -13,6 +17,7 @@ function ExerciseProgress() {
   const [exercise, setExercise] = useState("");
   const [data, setData] = useState([]);
   const [exerciseList, setExerciseList] = useState([]);
+  const [insights, setInsights] = useState(null);
 
   useEffect(() => {
     const fetchExercises = async () => {
@@ -35,7 +40,17 @@ function ExerciseProgress() {
 
     try {
       const res = await getExerciseProgress(exercise);
-      setData(res);
+
+      const insightData = await getExerciseInsights(exercise);
+      setInsights(insightData);
+
+      const formatted = res.map(item => ({
+        ...item,
+        date: new Date(item.date).toLocaleDateString()
+      }));
+
+      setData(formatted);
+
     } catch (err) {
       console.error(err);
     }
@@ -58,19 +73,24 @@ function ExerciseProgress() {
       <button onClick={handleFetch}>View Progress</button>
 
       {data.length > 0 && (
-        <LineChart width={500} height={300} data={data}>
+        <LineChart width={600} height={300} data={data}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis
-            dataKey="date"
-            tickFormatter={(d) =>
-              new Date(d).toLocaleDateString()
-            }
-          />
+          <XAxis dataKey="date" />
           <YAxis />
           <Tooltip />
           <Line type="monotone" dataKey="weight" />
         </LineChart>
       )}
+
+      {insights && (
+  <div style={{ marginTop: "20px" }}>
+    <h4>Insights</h4>
+    <p>🔥 Best Lift: {insights.bestWeight} kg</p>
+    <p>📅 Best Day: {insights.bestDay}</p>
+    <p>📊 Total Days: {insights.totalDays}</p>
+  </div>
+)}
+
     </div>
   );
 }

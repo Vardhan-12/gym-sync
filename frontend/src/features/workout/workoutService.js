@@ -44,3 +44,13 @@ export const getUserExercises = async () => {
   const response = await axios.get("/workouts/exercises");
   return response.data;
 };
+
+export const getVolumeProgress = async () => {
+  const response = await axios.get("/workouts/progress/volume");
+  return response.data;
+};
+
+export const getExerciseInsights = async (exercise) => {
+  const response = await axios.get(`/workouts/progress/insights/${exercise}`);
+  return response.data;
+};
