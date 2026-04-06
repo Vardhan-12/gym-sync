@@ -10,6 +10,7 @@ import WorkoutPage from "../features/workout/pages/WorkoutPage";
 import ProgressPage from "../features/progress/pages/ProgressPage";
 import ProfilePage from "../features/profile/pages/ProfilePage";
 import ProfileList from "../features/profile/pages/ProfileList";
+import ChatPage from "../features/chat/pages/ChatPage";
 
 function AppRouter() {
   const { user } = useContext(AuthContext);
@@ -37,6 +38,7 @@ function AppRouter() {
               <Route path="/progress" element={<ProgressPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/profiles" element={<ProfileList />} />
+              <Route path="/chat/:matchId" element={<ChatPage />} />
             </Route>
             <Route path="*" element={<Navigate to="/" />} />
           </>

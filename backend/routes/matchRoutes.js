@@ -22,4 +22,6 @@ router.get("/incoming", protect, getIncomingRequests);
 // Accept / Reject
 router.post("/respond", protect, respondToRequest);
 
+router.get("/my", protect, getMyMatches);
+
 module.exports = router;

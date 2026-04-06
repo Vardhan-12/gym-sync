@@ -42,7 +42,7 @@ const limiter = rateLimit({
   message: "Too many requests from this IP"
 });
 
-app.use("/api", limiter);
+//app.use("/api", limiter);
 
 // ROUTES
 app.use("/api/auth", require("./routes/authRoutes"));
@@ -71,5 +71,9 @@ if (process.env.NODE_ENV !== "test") {
 const matchRoutes = require("./routes/matchRoutes");
 
 app.use("/api/match", matchRoutes);
+
+const chatRoutes = require("./routes/chatRoutes");
+
+app.use("/api/chat", chatRoutes);
 
 module.exports = app;

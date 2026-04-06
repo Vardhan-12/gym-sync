@@ -4,29 +4,41 @@ import { getWorkouts } from "../../workout/workoutService";
 import {
   getIncomingRequests,
   respondToRequest,
+  getMyMatches,
 } from "../profileService";
+import { useNavigate } from "react-router-dom";
 
 function ProfilePage() {
   const [workouts, setWorkouts] = useState([]);
   const [requests, setRequests] = useState([]);
+  const [matches, setMatches] = useState([]);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
-    loadWorkouts();
-    loadRequests();
+    loadAll();
   }, []);
 
-  const loadWorkouts = async () => {
-    const data = await getWorkouts();
-    setWorkouts(data || []);
-  };
+  // ✅ single loader (cleaner)
+  const loadAll = async () => {
+    const [w, r, m] = await Promise.all([
+      getWorkouts(),
+      getIncomingRequests(),
+      getMyMatches(),
+    ]);
 
-  const loadRequests = async () => {
-    const data = await getIncomingRequests();
-    setRequests(data);
+    setWorkouts(w || []);
+    setRequests(r || []);
+    setMatches(m || []);
   };
 
   const handleResponse = async (id, action) => {
     await respondToRequest(id, action);
+
+    if (action === "accepted") {
+      navigate(`/chat/${id}`);
+    }
+
     setRequests((prev) => prev.filter((r) => r._id !== id));
   };
 
@@ -34,19 +46,16 @@ function ProfilePage() {
     <div>
       <h1>My Profile</h1>
 
-      <p>Your completed workouts and activity</p>
+      {/* 🔹 WORKOUTS */}
+      <WorkoutList workouts={workouts} refreshWorkouts={loadAll} />
 
-      <WorkoutList
-        workouts={workouts}
-        refreshWorkouts={loadWorkouts}
-      />
-
+      {/* 🔹 INCOMING REQUESTS */}
       <h2 style={{ marginTop: "30px" }}>Incoming Requests</h2>
 
       {requests.length === 0 && <p>No requests</p>}
 
       {requests.map((req) => (
-        <div key={req._id} style={requestCard}>
+        <div key={req._id} style={card}>
           <p>{req.requester.name}</p>
 
           <button onClick={() => handleResponse(req._id, "accepted")}>
@@ -58,11 +67,35 @@ function ProfilePage() {
           </button>
         </div>
       ))}
+
+      {/* 🔹 MY CHATS (IMPORTANT FIX) */}
+      <h2 style={{ marginTop: "30px" }}>My Chats</h2>
+
+      {matches.length === 0 && <p>No chats yet</p>}
+
+      {matches.map((match) => {
+        const myId = localStorage.getItem("userId");
+
+        const otherUser =
+          match.requester._id === myId
+            ? match.recipient
+            : match.requester;
+
+        return (
+          <div key={match._id} style={card}>
+            <p>{otherUser.name}</p>
+
+            <button onClick={() => navigate(`/chat/${match._id}`)}>
+              Open Chat
+            </button>
+          </div>
+        );
+      })}
     </div>
   );
 }
 
-const requestCard = {
+const card = {
   display: "flex",
   gap: "10px",
   alignItems: "center",

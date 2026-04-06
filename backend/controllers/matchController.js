@@ -91,9 +91,31 @@ const respondToRequest = async (req, res) => {
   }
 };
 
+exports.getMyMatches = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const matches = await Match.find({
+      status: "accepted",
+      $or: [
+        { requester: userId },
+        { recipient: userId }
+      ]
+    })
+      .populate("requester", "name")
+      .populate("recipient", "name");
+
+    res.json(matches);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   sendMatchRequest,
   getMyMatches,
   getIncomingRequests,
   respondToRequest,
+  getMyMatches,
 };
