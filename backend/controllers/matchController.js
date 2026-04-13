@@ -91,6 +91,8 @@ const respondToRequest = async (req, res) => {
   }
 };
 
+const Message = require("../models/Message");
+
 exports.getMyMatches = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -105,7 +107,21 @@ exports.getMyMatches = async (req, res) => {
       .populate("requester", "name")
       .populate("recipient", "name");
 
-    res.json(matches);
+    // ✅ attach last message
+    const results = await Promise.all(
+      matches.map(async (match) => {
+        const lastMessage = await Message.findOne({ match: match._id })
+          .sort({ createdAt: -1 })
+          .select("text createdAt sender");
+
+        return {
+          ...match.toObject(),
+          lastMessage,
+        };
+      })
+    );
+
+    res.json(results);
 
   } catch (error) {
     res.status(500).json({ message: error.message });
