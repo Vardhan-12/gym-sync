@@ -3,6 +3,7 @@
 import { NavLink } from "react-router-dom";
 import { useContext } from "react";
 import { AuthContext } from "../features/auth/authContext";
+import NavItem from "./NavItem";
 
 function Sidebar() {
   const { logout } = useContext(AuthContext);
@@ -42,20 +43,6 @@ function Sidebar() {
   );
 }
 
-/* 🔹 Reusable Nav Item with ACTIVE styling */
-function NavItem({ to, label }) {
-  return (
-    <NavLink
-      to={to}
-      style={({ isActive }) => ({
-        ...link,
-        ...(isActive ? activeLink : {}),
-      })}
-    >
-      {label}
-    </NavLink>
-  );
-}
 
 /* 🔹 Section Title */
 function SectionTitle({ title }) {

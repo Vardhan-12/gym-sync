@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { getMessages, sendMessage } from "../chatService";
-import socket from "../../../socket";
+import socket from "../../../services/socket";
 
 function ChatPage() {
   // 🔹 matchId comes from route: /chat/:matchId
@@ -31,41 +31,72 @@ function ChatPage() {
     setPage(1);
     loadMessages(1);
 
-    // join socket room for this match
-    socket.emit("joinRoom", matchId);
+    /* ===================================================
+   JOIN CHAT ROOM
+=================================================== */
 
-    // receive new messages (realtime)
-    const onReceive = (msg) => {
-      setMessages((prev) => [...prev, msg]);
-    };
+const joinRoom = () => {
 
-    // typing indicators
-    const onTyping = () => setTyping(true);
-    const onStopTyping = () => setTyping(false);
+  console.log("Joining room:", matchId);
 
-    socket.on("receiveMessage", (msg) => {
+  socket.emit("joinRoom", matchId);
+
+};
+
+// if already connected
+if (socket.connected) {
+  joinRoom();
+}
+
+// if reconnect happens
+socket.on("connect", joinRoom);
+
+    /* ===================================================
+   SOCKET EVENTS
+=================================================== */
+
+// receive new realtime message
+const onReceiveMessage = (msg) => {
+
+  console.log("🔥 Realtime message received:", msg);
+
   setMessages((prev) => {
-    // ✅ prevent duplicate messages
+
+    // duplicate prevention
     const exists = prev.some(
-      (m) =>
-        m._id === msg._id ||
-        (m.text === msg.text && m.createdAt === msg.createdAt)
+      (m) => m._id === msg._id
     );
 
-    if (exists) return prev;
+    if (exists) {
+      return prev;
+    }
 
     return [...prev, msg];
-  });
-});
-    socket.on("typing", onTyping);
-    socket.on("stopTyping", onStopTyping);
 
-    // cleanup on unmount / match change
-    return () => {
-      socket.off("receiveMessage", onReceive);
-      socket.off("typing", onTyping);
-      socket.off("stopTyping", onStopTyping);
-    };
+  });
+
+};
+
+// typing indicators
+const onTyping = () => setTyping(true);
+
+const onStopTyping = () => setTyping(false);
+
+// register listeners
+socket.on("receiveMessage", onReceiveMessage);
+socket.on("typing", onTyping);
+socket.on("stopTyping", onStopTyping);
+
+/* ===================================================
+   CLEANUP
+=================================================== */
+return () => {
+  socket.off("connect", joinRoom);
+  socket.off("receiveMessage", onReceiveMessage);
+  socket.off("typing", onTyping);
+  socket.off("stopTyping", onStopTyping);
+};
+
   }, [matchId]);
 
   /* ===================================================
@@ -120,34 +151,73 @@ useEffect(() => {
      - emit via socket
      - persist via API
      =================================================== */
-  const handleSend = async () => {
-    if (!text.trim()) return;
+  /* ===================================================
+   SEND MESSAGE
+=================================================== */
+const handleSend = async () => {
 
-    const newMsg = text.trim();
+  // prevent empty messages
+  if (!text.trim()) return;
+
+  try {
+
+    // save current text
+    const messageText = text.trim();
+
+    // clear input immediately
     setText("");
 
-    // temporary message for instant UI
-    const tempMsg = {
-      _id: `temp-${Date.now()}`, // unique temp key
+    /* ===============================================
+       1. SAVE MESSAGE IN DATABASE
+    =============================================== */
+    const savedMessage = await sendMessage(
       matchId,
-      text: newMsg,
-      sender: { _id: myId, name: "You" },
-      createdAt: new Date().toISOString(),
-    };
+      messageText
+    );
 
-    try {
-      // 1) instant UI
-      setMessages((prev) => [...prev, tempMsg]);
+    /* ===============================================
+       2. ADD TO MY UI
+    =============================================== */
+    setMessages((prev) => [
 
-      // 2) realtime
-      socket.emit("sendMessage", tempMsg);
+      ...prev,
 
-      // 3) save in DB
-      await sendMessage(matchId, newMsg);
-    } catch (err) {
-      console.log("Send error:", err);
-    }
-  };
+      {
+        ...savedMessage,
+
+        // IMPORTANT:
+        // backend may return sender only as ID
+        sender: {
+          _id: myId,
+          name: "You",
+        },
+      },
+
+    ]);
+
+    /* ===============================================
+       3. SEND REALTIME EVENT
+    =============================================== */
+    socket.emit("sendMessage", {
+
+      ...savedMessage,
+
+      matchId,
+
+      sender: {
+        _id: myId,
+        name: "You",
+      },
+
+    });
+
+  } catch (error) {
+
+    console.log("Send message error:", error);
+
+  }
+
+};
 
   /* ===================================================
      TYPING HANDLER (DEBOUNCED)

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import WorkoutForm from "../WorkoutForm";
+import WorkoutForm from "../components/WorkoutForm";
+
 import {
   getWorkouts,
   deleteWorkout,

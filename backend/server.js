@@ -45,6 +45,9 @@ const limiter = rateLimit({
   max: 1000,
   message: "Too many requests",
 });
+
+const aiRoutes = require("./routes/aiRoutes");
+
 // app.use("/api", limiter);
 
 // ================== ROUTES ==================
@@ -55,6 +58,7 @@ app.use("/api/admin", require("./routes/adminRoutes"));
 app.use("/api/workouts", require("./routes/workoutRoutes"));
 app.use("/api/match", require("./routes/matchRoutes"));
 app.use("/api/chat", require("./routes/chatRoutes"));
+app.use("/api/ai", aiRoutes);
 
 // ================== HEALTH CHECK ==================
 app.get("/", (req, res) => {
@@ -69,44 +73,12 @@ app.use(errorHandler);
 const server = http.createServer(app);
 
 // ================== SOCKET.IO SETUP ==================
+
 const io = new Server(server, {
   cors: {
     origin: "http://localhost:5173",
     methods: ["GET", "POST"],
   },
-});
-
-// ================== ONLINE USERS STORE ==================
-// Use Set to avoid duplicates
-let onlineUsers = new Set();
-
-// ================== SOCKET LOGIC ==================
-io.on("connection", (socket) => {
-
-  // join room
-  socket.on("joinRoom", (matchId) => {
-    socket.join(matchId);
-  });
-
-  // send message
-  socket.on("sendMessage", (msg) => {
-    socket.to(msg.matchId).emit("receiveMessage", msg);
-  });
-
-  // typing
-  socket.on("typing", (matchId) => {
-    socket.to(matchId).emit("typing");
-  });
-
-  socket.on("stopTyping", (matchId) => {
-    socket.to(matchId).emit("stopTyping");
-  });
-
-  // 🔥 mark as read
-  socket.on("markAsRead", (matchId) => {
-    socket.to(matchId).emit("messagesRead");
-  });
-
 });
 
 // ================== START SERVER ==================

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createWorkout } from "./workoutService";
+import { createWorkout } from "../workoutService";
 
 function WorkoutForm({ onWorkoutAdded }) {
 

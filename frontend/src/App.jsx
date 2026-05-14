@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import AppRouter from "./app/AppRouter";
-import socket from "./socket";
+import socket from "./services/socket";
 
 function App() {
 

@@ -1,27 +1,31 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-// 🔹 existing APIs
+/* ================= SERVICES ================= */
+
+// profile (requests + matches)
 import {
   getMyMatches,
   getIncomingRequests,
   respondToRequest,
 } from "../../profile/profileService";
 
-// 🔥 NEW APIs (AI suggestions + send request)
+// match (AI suggestions + send)
 import {
   getSuggestions,
   sendRequest,
 } from "../matchService";
 
 /*
-  CONNECTIONS PAGE
+========================================================
+ CONNECTIONS PAGE (CLEAN ARCHITECTURE)
 
-  Tabs:
-  1. Discover  → find partners (AI suggestions)
-  2. Matches   → accepted users (chat)
-  3. Requests  → incoming requests
+ Tabs:
+ 1. Discover  → AI suggestions
+ 2. Matches   → accepted users
+ 3. Requests  → incoming requests
 
+========================================================
 */
 
 function ConnectionsPage() {
@@ -33,6 +37,9 @@ function ConnectionsPage() {
   const [matches, setMatches] = useState([]);
   const [requests, setRequests] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
+
+  // 🔥 relation state (VERY IMPORTANT)
+  const [statusMap, setStatusMap] = useState({});
 
   const navigate = useNavigate();
   const myId = localStorage.getItem("userId");
@@ -48,59 +55,66 @@ function ConnectionsPage() {
       const [m, r, s] = await Promise.all([
         getMyMatches(),
         getIncomingRequests(),
-        getSuggestions(), // 🔥 AI suggestions
+        getSuggestions(),
       ]);
 
-      // 🔥 sort matches by latest message
-      const sortedMatches = (m || []).sort((a, b) => {
-        const timeA = a.lastMessage?.createdAt || a.createdAt;
-        const timeB = b.lastMessage?.createdAt || b.createdAt;
-        return new Date(timeB) - new Date(timeA);
-      });
-
-      setMatches(sortedMatches);
+      setMatches(m || []);
       setRequests(r || []);
       setSuggestions(s || []);
+
+      // 🔥 build relation map
+      setStatusMap(buildStatusMap(m || [], r || []));
 
     } catch (err) {
       console.log("Load error:", err);
     }
   };
 
-  /* ================= SEND REQUEST ================= */
+  /* ================= BUILD STATUS ================= */
+
+  /*
+    This decides what button to show
+  */
+  const buildStatusMap = (matches, requests) => {
+    const map = {};
+
+    // ✅ already connected
+    matches.forEach((m) => {
+      const other =
+        m.requester._id === myId
+          ? m.recipient._id
+          : m.requester._id;
+
+      map[other] = "connected";
+    });
+
+    // ✅ incoming request
+    requests.forEach((r) => {
+      map[r.requester._id] = "incoming";
+    });
+
+    return map;
+  };
+
+  /* ================= ACTIONS ================= */
 
   const handleSendRequest = async (userId) => {
     try {
       await sendRequest(userId);
-      alert("Request sent");
-
-      // refresh suggestions
-      loadData();
-
+      loadData(); // refresh UI
     } catch (err) {
       alert(err.response?.data?.message || "Error");
     }
   };
 
-  /* ================= ACCEPT / REJECT ================= */
-
   const handleResponse = async (id, action) => {
     try {
       await respondToRequest(id, action);
-
-      // remove from UI
-      setRequests(prev => prev.filter(r => r._id !== id));
-
-      if (action === "accepted") {
-        loadData();
-      }
-
+      loadData();
     } catch (err) {
-      console.log("Response error:", err);
+      console.log(err);
     }
   };
-
-  /* ================= OPEN CHAT ================= */
 
   const openChat = (matchId) => {
     navigate(`/chat/${matchId}`);
@@ -113,30 +127,11 @@ function ConnectionsPage() {
 
       <h1>Connections</h1>
 
-      {/* 🔥 TABS */}
+      {/* ================= TABS ================= */}
       <div style={tabContainer}>
-
-        <button
-          onClick={() => setActiveTab("discover")}
-          style={activeTab === "discover" ? activeTabStyle : tabStyle}
-        >
-          Discover
-        </button>
-
-        <button
-          onClick={() => setActiveTab("matches")}
-          style={activeTab === "matches" ? activeTabStyle : tabStyle}
-        >
-          Matches
-        </button>
-
-        <button
-          onClick={() => setActiveTab("requests")}
-          style={activeTab === "requests" ? activeTabStyle : tabStyle}
-        >
-          Requests ({requests.length})
-        </button>
-
+        <Tab label="Discover" active={activeTab} setTab={setActiveTab} value="discover" />
+        <Tab label="Matches" active={activeTab} setTab={setActiveTab} value="matches" />
+        <Tab label={`Requests (${requests.length})`} active={activeTab} setTab={setActiveTab} value="requests" />
       </div>
 
       {/* ================= DISCOVER ================= */}
@@ -145,27 +140,47 @@ function ConnectionsPage() {
 
           {suggestions.length === 0 && <p>No suggestions yet</p>}
 
-          {suggestions.map((item) => (
-            <div key={item.user._id} style={card}>
+          {suggestions.map((item) => {
 
-              <div>
-                <p style={name}>{item.user.name}</p>
+            const userId = item.user._id;
+            const status = statusMap[userId];
 
-                <p style={subText}>
-                  Overlap Score: {item.overlapScore}
-                </p>
+            return (
+              <div key={userId} style={card}>
 
-                <p style={subText}>
-                  Match Score: {item.totalScore}
-                </p>
+                <div>
+                  <p style={name}>{item.user.name}</p>
+
+                  <p style={subText}>
+                    Match Score: {item.totalScore}
+                  </p>
+                </div>
+
+                {/* 🔥 SMART BUTTON */}
+                {status === "connected" && (
+                  <button disabled style={connectedBtn}>
+                    Connected
+                  </button>
+                )}
+
+                {status === "incoming" && (
+                  <button
+                    style={acceptBtn}
+                    onClick={() => setActiveTab("requests")}
+                  >
+                    Accept
+                  </button>
+                )}
+
+                {!status && (
+                  <button onClick={() => handleSendRequest(userId)}>
+                    Send Request
+                  </button>
+                )}
+
               </div>
-
-              <button onClick={() => handleSendRequest(item.user._id)}>
-                Send Request
-              </button>
-
-            </div>
-          ))}
+            );
+          })}
 
         </div>
       )}
@@ -179,7 +194,7 @@ function ConnectionsPage() {
           {matches.map((match) => {
 
             const otherUser =
-              match.requester?._id === myId
+              match.requester._id === myId
                 ? match.recipient
                 : match.requester;
 
@@ -187,21 +202,13 @@ function ConnectionsPage() {
               <div key={match._id} style={card}>
 
                 <div>
-                  <p style={name}>
-                    {otherUser?.name || "User"}
-                  </p>
+                  <p style={name}>{otherUser?.name}</p>
 
                   <p style={subText}>
                     {match.lastMessage
                       ? match.lastMessage.text
                       : "No messages yet"}
                   </p>
-
-                  {match.lastMessage && (
-                    <p style={time}>
-                      {new Date(match.lastMessage.createdAt).toLocaleTimeString()}
-                    </p>
-                  )}
                 </div>
 
                 <button onClick={() => openChat(match._id)}>
@@ -224,9 +231,7 @@ function ConnectionsPage() {
           {requests.map((req) => (
             <div key={req._id} style={card}>
 
-              <p style={name}>
-                {req.requester?.name}
-              </p>
+              <p style={name}>{req.requester?.name}</p>
 
               <div style={{ display: "flex", gap: "10px" }}>
                 <button onClick={() => handleResponse(req._id, "accepted")}>
@@ -248,6 +253,19 @@ function ConnectionsPage() {
   );
 }
 
+/* ================= REUSABLE TAB ================= */
+
+function Tab({ label, value, active, setTab }) {
+  return (
+    <button
+      onClick={() => setTab(value)}
+      style={active === value ? activeTab : tab}
+    >
+      {label}
+    </button>
+  );
+}
+
 /* ================= STYLES ================= */
 
 const container = {
@@ -260,15 +278,16 @@ const tabContainer = {
   marginBottom: "20px",
 };
 
-const tabStyle = {
-  padding: "10px",
+const tab = {
+  padding: "10px 15px",
   border: "1px solid #ccc",
   background: "#fff",
   cursor: "pointer",
+  borderRadius: "6px",
 };
 
-const activeTabStyle = {
-  ...tabStyle,
+const activeTab = {
+  ...tab,
   background: "#4CAF50",
   color: "#fff",
 };
@@ -281,6 +300,7 @@ const card = {
   border: "1px solid #ddd",
   borderRadius: "10px",
   marginBottom: "10px",
+  background: "#fafafa",
 };
 
 const name = {
@@ -292,9 +312,15 @@ const subText = {
   color: "gray",
 };
 
-const time = {
-  fontSize: "11px",
-  color: "#999",
+const connectedBtn = {
+  background: "gray",
+  color: "#fff",
+  cursor: "not-allowed",
+};
+
+const acceptBtn = {
+  background: "#ff9800",
+  color: "#fff",
 };
 
 export default ConnectionsPage;

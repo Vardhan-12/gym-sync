@@ -4,6 +4,7 @@ import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../auth/authContext";
 import { getRandomQuote } from "../../../utils/quotes";
 import { useNavigate } from "react-router-dom";
+import Chatbot from "../../ai/components/Chatbot";
 
 // 🔹 API services
 import {
@@ -41,6 +42,8 @@ function Dashboard() {
 
     const fetchData = async () => {
       try {
+        
+
 
         // 🔹 get today's date (YYYY-MM-DD)
         const today = new Date().toISOString().split("T")[0];
@@ -115,6 +118,9 @@ function Dashboard() {
       >
         Find Workout Partner
       </button>
+
+      <h3 style={{ marginTop: "30px" }}>AI Assistant</h3>
+<Chatbot />
 
       {/* ================== TOP SECTION ================== */}
 
